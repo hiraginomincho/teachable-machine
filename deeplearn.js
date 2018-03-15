@@ -73,7 +73,10 @@ class Main {
 
       this.video.addEventListener('playing', ()=> this.videoPlaying = true);
       this.video.addEventListener('paused', ()=> this.videoPlaying = false);
-    })
+    }).catch((err) => {
+      console.log("error");
+      console.log(err);
+    });
 
     // Load knn model
     this.knn.load()
