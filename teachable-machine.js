@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//import {KNNImageClassifier} from 'deeplearn-knn-image-classifier';
-//import {NDArrayMathGPU, Array3D, ENV}from 'deeplearn';
-
 // Number of classes to classify
 const NUM_CLASSES = 3;
 // Webcam Image size. Must be 227.
@@ -28,7 +25,7 @@ var training = -1; // -1 when no class is being trained
 var videoPlaying = false;
 
 // Initiate deeplearn.js math and knn classifier objects
-var knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK, deeplearn.ENV.math);
+var knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK);
 
 // Create video element that will contain the webcam image
 var video = document.createElement('video');
@@ -104,7 +101,7 @@ function stop(){
 function animate(){
   if(videoPlaying){
     // Get image data from video element
-    const image = deeplearn.Array3D.fromPixels(video);
+    const image = deeplearn.fromPixels(video);
 
     // Train class if one of the buttons is held down
     if(training != -1){
