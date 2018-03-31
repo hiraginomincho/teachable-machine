@@ -237,7 +237,6 @@ video.width = 500;
 video.style.display = 'block';
 
 var frontFacing = true;
-var videoConstraints = {video: {facingMode: frontFacing ? 'user' : 'environment'}, audio: false};
 
 document.body.appendChild(video);
 
