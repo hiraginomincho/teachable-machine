@@ -284,7 +284,7 @@ function start() {
     stop();
   }
   video.play();
-  timer = requestAnimationFrame(animate.bind(this));
+  timer = requestAnimationFrame(animate);
 }
 
 function stop() {
