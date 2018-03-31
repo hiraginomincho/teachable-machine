@@ -271,8 +271,8 @@ function stopVideo() {
 
 function toggleCameraFacingMode() {
   frontFacing = !frontFacing;
-  stop();
-  start();
+  stopVideo();
+  startVideo();
 }
 
 startVideo();
