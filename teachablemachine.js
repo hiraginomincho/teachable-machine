@@ -277,7 +277,10 @@ function toggleCameraFacingMode() {
 startVideo();
 
 knn.load()
-.then(() => start());
+.then(() => {
+  start();
+  TeachableMachine.ready();
+});
 
 function start() {
   if (timer) {
@@ -297,7 +300,7 @@ function animate() {
     const image = tf.image.resizeBilinear(tf.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
     if(training != -1) {
       knn.addImage(image, training);
-      TeachableMachine.gotSampleCount(JSON.stringify(knn.getClassExampleCount()));
+      TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
     }
     const exampleCount = knn.getClassExampleCount();
     if(Math.max(...exampleCount) > 0) {
