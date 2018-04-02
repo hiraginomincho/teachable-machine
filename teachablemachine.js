@@ -50,6 +50,18 @@ function startVideo() {
 
 startVideo();
 
+function stopVideo() {
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(t => t.stop());
+  }
+}
+
+function toggleCameraFacingMode() {
+  frontFacing = !frontFacing;
+  stopVideo();
+  startVideo();
+}
+
 // Load knn model
 knn.load().then(() => {
   start();
@@ -100,9 +112,8 @@ function animate(){
       image.dispose();
     }
   }
+  timer = requestAnimationFrame(animate);
 }
-
-timer = requestAnimationFrame(animate);
 
 //console.log('TeachableMachine: Using Tensorflow.js version ' + tf.version.tfjs);
 
@@ -330,142 +341,3 @@ class KNNImageClassifier {
   }
 }
 */
-// var training = -1;
-// var videoPlaying = false;
-
-// var knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK);
-
-// var video = document.createElement('video');
-// video.setAttribute('autoplay', '');
-// video.setAttribute('playsinline', '');
-// video.width = 500;
-// video.style.display = 'block';
-
-// var frontFacing = true;
-
-// document.body.appendChild(video);
-
-// var timer;
-
-// var labelToClass = {};
-// var labels = [];
-
-// var confidences = {};
-
-// var topChoice;
-
-// video.addEventListener('loadedmetadata', function () {
-//   video.height = this.videoHeight * video.width / this.videoWidth;
-// }, false);
-
-// function startVideo() {
-//   navigator.mediaDevices.getUserMedia({video: {facingMode: frontFacing ? 'user' : 'environment'}, audio: false})
-//   .then(stream => {
-//     video.srcObject = stream;
-//     video.addEventListener('playing', () => videoPlaying = true);
-//     video.addEventListener('paused', () => videoPlaying = false);
-//   }).catch(e => log(e));
-// }
-
-// function stopVideo() {
-//   if (video.srcObject) {
-//     video.srcObject.getTracks().forEach(t => t.stop());
-//   }
-// }
-
-// function toggleCameraFacingMode() {
-//   frontFacing = !frontFacing;
-//   stopVideo();
-//   startVideo();
-// }
-
-// startVideo();
-
-// knn.load()
-// .then(() => {
-//   start();
-//   //TeachableMachine.ready();
-// });
-
-// function start() {
-//   if (timer) {
-//     stop();
-//   }
-//   video.play();
-//   timer = requestAnimationFrame(animate);
-// }
-
-// function stop() {
-//   video.pause();
-//   cancelAnimationFrame(timer);
-// }
-
-// function animate() {
-//   if(videoPlaying) {
-//     const image = dl.image.resizeBilinear(dl.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
-//     if(training != -1) {
-//       knn.addImage(image, training);
-//       //TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
-//     }
-//     const exampleCount = knn.getClassExampleCount();
-//     if(Math.max(...exampleCount) > 0) {
-//       knn.predictClass(image)
-//       .then(res => {
-//         for(let i = 0; i < NUM_CLASSES; i++) {
-//           if(res.classIndex == i) {
-//             topChoice = i;
-//           }
-//           if(exampleCount[i] > 0) {
-//             confidences[i] = res.confidences[i];
-//           }
-//         }
-//         //TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
-//         //TeachableMachine.gotClassification(labels[topChoice]);
-//       })
-//       .then(() => image.dispose());
-//     } else {
-//       image.dispose();
-//     }
-//   }
-//   timer = requestAnimationFrame(animate);
-// }
-
-// function startTraining(label) {
-//   var numClasses = Object.keys(labelToClass).length;
-//   if (!labelToClass.hasOwnProperty(label)) {
-//     if (numClasses == NUM_CLASSES) {
-//       return;
-//     }
-//     labelToClass[label] = numClasses;
-//     labels.push(label);
-//   }
-//   training = labelToClass[label];
-// }
-
-// function stopTraining() {
-//   training = -1;
-// }
-
-// function getSampleCount(label) {
-//   if (!labelToClass.hasOwnProperty(label)) {
-//     return -1;
-//   }
-//   var counts = knn.getClassExampleCount();
-//   return counts[labelToClass[label]];
-// }
-
-// function getConfidence(label) {
-//   if (!labelToClass.hasOwnProperty(label)) {
-//     return -1;
-//   }
-//   return confidences[labelToClass[label]];
-// }
-
-// function getClassification() {
-//   return labels[topChoice];
-// }
-
-// function setInputWidth(width) {
-//   video.width = width;
-//   video.height = video.videoHeight * width / video.videoWidth;
-// }
