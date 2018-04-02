@@ -1,13 +1,14 @@
 'use strict';
 
-console.log('TeachableMachine: Using Tensorflow.js version ' + tf.version.tfjs);
+//console.log('TeachableMachine: Using Tensorflow.js version ' + tf.version.tfjs);
 
-const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
+//const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
 
 const NUM_CLASSES = 3;
-const IMAGE_SIZE = 224;
+//const IMAGE_SIZE = 224;
+const IMAGE_SIZE = 227;
 const TOPK = 10;
-
+/*
 class KNNImageClassifier {
   constructor(numClasses, k) {
     this.numClasses = numClasses;
@@ -224,11 +225,11 @@ class KNNImageClassifier {
     this.squashLogitsDenominator.dispose();
   }
 }
-
+*/
 var training = -1;
 var videoPlaying = false;
 
-var knn = new KNNImageClassifier(NUM_CLASSES, TOPK);
+var knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK);
 
 var video = document.createElement('video');
 video.setAttribute('autoplay', '');
@@ -279,7 +280,7 @@ startVideo();
 knn.load()
 .then(() => {
   start();
-  TeachableMachine.ready();
+  //TeachableMachine.ready();
 });
 
 function start() {
@@ -297,10 +298,10 @@ function stop() {
 
 function animate() {
   if(videoPlaying) {
-    const image = tf.image.resizeBilinear(tf.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
+    const image = dl.image.resizeBilinear(dl.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
     if(training != -1) {
       knn.addImage(image, training);
-      TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
+      //TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
     }
     const exampleCount = knn.getClassExampleCount();
     if(Math.max(...exampleCount) > 0) {
@@ -314,8 +315,8 @@ function animate() {
             confidences[i] = res.confidences[i];
           }
         }
-        TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
-        TeachableMachine.gotClassification(labels[topChoice]);
+        //TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
+        //TeachableMachine.gotClassification(labels[topChoice]);
       })
       .then(() => image.dispose());
     } else {
