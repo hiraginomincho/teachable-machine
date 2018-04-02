@@ -26,6 +26,8 @@ video.setAttribute('playsinline', '');
 video.width = 500;
 video.style.display = 'block';
 
+var frontFacing = true;
+
 // Add video element to DOM
 document.body.appendChild(video);
 
@@ -33,14 +35,16 @@ video.addEventListener('loadedmetadata', function () {
   video.height = this.videoHeight * video.width / this.videoWidth;
 }, false);
 
-// Setup webcam
-navigator.mediaDevices.getUserMedia({video: true, audio: false})
-.then((stream) => {
-  video.srcObject = stream;
+function startVideo() {
+  navigator.mediaDevices.getUserMedia({video: {facingMode: frontFacing ? 'user' : 'environment'}, audio: false})
+  .then(stream => {
+    video.srcObject = stream;
+    video.addEventListener('playing', () => videoPlaying = true);
+    video.addEventListener('paused', () => videoPlaying = false);
+  }).catch(e => log(e));
+}
 
-  video.addEventListener('playing', ()=> videoPlaying = true);
-  video.addEventListener('paused', ()=> videoPlaying = false);
-})
+startVideo();
 
 // Load knn model
 knn.load().then(() => start());
@@ -75,12 +79,10 @@ function animate(){
       knn.predictClass(image)
       .then((res)=>{
         for(let i=0;i<NUM_CLASSES; i++){
-          // Make the predicted class bold
           if(res.classIndex == i){
             topChoice = i;
           }
 
-          // Update info text
           if(exampleCount[i] > 0){
             confidences[i] = res.confidences[i];
           }
