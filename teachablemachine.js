@@ -1,13 +1,132 @@
 'use strict';
 
+// Number of classes to classify
+const NUM_CLASSES = 3;
+// Webcam Image size. Must be 227. 
+const IMAGE_SIZE = 227;
+// K value for KNN
+const TOPK = 10;
+
+class Main {
+  constructor(){
+    // Initiate variables
+    this.infoTexts = [];
+    this.training = -1; // -1 when no class is being trained
+    this.videoPlaying = false;
+    
+    // Initiate deeplearn.js math and knn classifier objects
+    this.knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK);
+    
+    // Create video element that will contain the webcam image
+    this.video = document.createElement('video');
+    this.video.setAttribute('autoplay', '');
+    this.video.setAttribute('playsinline', '');
+    
+    // Add video element to DOM
+    document.body.appendChild(this.video);
+    
+    // Create training buttons and info texts    
+    for(let i=0;i<NUM_CLASSES; i++){
+      const div = document.createElement('div');
+      document.body.appendChild(div);
+      div.style.marginBottom = '10px';
+
+      // Create training button
+      const button = document.createElement('button')
+      button.innerText = "Train "+i;
+      div.appendChild(button);
+
+      // Listen for mouse events when clicking the button
+      button.addEventListener('mousedown', () => this.training = i);
+      button.addEventListener('mouseup', () => this.training = -1);
+      
+      // Create info text
+      const infoText = document.createElement('span')
+      infoText.innerText = " No examples added";
+      div.appendChild(infoText);
+      this.infoTexts.push(infoText);
+    }
+    
+    
+    // Setup webcam
+    navigator.mediaDevices.getUserMedia({video: true, audio: false})
+    .then((stream) => {
+      this.video.srcObject = stream;
+      this.video.width = IMAGE_SIZE;
+      this.video.height = IMAGE_SIZE;
+
+      this.video.addEventListener('playing', ()=> this.videoPlaying = true);
+      this.video.addEventListener('paused', ()=> this.videoPlaying = false);
+    })
+    
+    // Load knn model
+    this.knn.load()
+    .then(() => this.start()); 
+  }
+  
+  start(){
+    if (this.timer) {
+      this.stop();
+    }
+    this.video.play();
+    this.timer = requestAnimationFrame(this.animate.bind(this));
+  }
+  
+  stop(){
+    this.video.pause();
+    cancelAnimationFrame(this.timer);
+  }
+  
+  animate(){
+    if(this.videoPlaying){
+      // Get image data from video element
+      const image = dl.fromPixels(this.video);
+      
+      // Train class if one of the buttons is held down
+      if(this.training != -1){
+        // Add current image to classifier
+        this.knn.addImage(image, this.training)
+      }
+      
+      // If any examples have been added, run predict
+      const exampleCount = this.knn.getClassExampleCount();
+      if(Math.max(...exampleCount) > 0){
+        this.knn.predictClass(image)
+        .then((res)=>{
+          for(let i=0;i<NUM_CLASSES; i++){
+            // Make the predicted class bold
+            if(res.classIndex == i){
+              this.infoTexts[i].style.fontWeight = 'bold';
+            } else {
+              this.infoTexts[i].style.fontWeight = 'normal';
+            }
+
+            // Update info text
+            if(exampleCount[i] > 0){
+              this.infoTexts[i].innerText = ` ${exampleCount[i]} examples - ${res.confidences[i]*100}%`
+            }
+          }
+        })
+        // Dispose image when done
+        .then(()=> image.dispose())
+      } else {
+        image.dispose()
+      }
+    }
+    this.timer = requestAnimationFrame(this.animate.bind(this));
+  }
+}
+
+window.addEventListener('load', () => new Main());
+
 //console.log('TeachableMachine: Using Tensorflow.js version ' + tf.version.tfjs);
 
 //const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
 
-const NUM_CLASSES = 3;
-//const IMAGE_SIZE = 224;
-const IMAGE_SIZE = 227;
-const TOPK = 10;
+// const NUM_CLASSES = 3;
+// //const IMAGE_SIZE = 224;
+// const IMAGE_SIZE = 227;
+// const TOPK = 10;
 /*
 class KNNImageClassifier {
   constructor(numClasses, k) {
@@ -226,142 +345,142 @@ class KNNImageClassifier {
   }
 }
 */
-var training = -1;
-var videoPlaying = false;
+// var training = -1;
+// var videoPlaying = false;
 
-var knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK);
+// var knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK);
 
-var video = document.createElement('video');
-video.setAttribute('autoplay', '');
-video.setAttribute('playsinline', '');
-video.width = 500;
-video.style.display = 'block';
+// var video = document.createElement('video');
+// video.setAttribute('autoplay', '');
+// video.setAttribute('playsinline', '');
+// video.width = 500;
+// video.style.display = 'block';
 
-var frontFacing = true;
+// var frontFacing = true;
 
-document.body.appendChild(video);
+// document.body.appendChild(video);
 
-var timer;
+// var timer;
 
-var labelToClass = {};
-var labels = [];
+// var labelToClass = {};
+// var labels = [];
 
-var confidences = {};
+// var confidences = {};
 
-var topChoice;
+// var topChoice;
 
-video.addEventListener('loadedmetadata', function () {
-  video.height = this.videoHeight * video.width / this.videoWidth;
-}, false);
+// video.addEventListener('loadedmetadata', function () {
+//   video.height = this.videoHeight * video.width / this.videoWidth;
+// }, false);
 
-function startVideo() {
-  navigator.mediaDevices.getUserMedia({video: {facingMode: frontFacing ? 'user' : 'environment'}, audio: false})
-  .then(stream => {
-    video.srcObject = stream;
-    video.addEventListener('playing', () => videoPlaying = true);
-    video.addEventListener('paused', () => videoPlaying = false);
-  }).catch(e => log(e));
-}
+// function startVideo() {
+//   navigator.mediaDevices.getUserMedia({video: {facingMode: frontFacing ? 'user' : 'environment'}, audio: false})
+//   .then(stream => {
+//     video.srcObject = stream;
+//     video.addEventListener('playing', () => videoPlaying = true);
+//     video.addEventListener('paused', () => videoPlaying = false);
+//   }).catch(e => log(e));
+// }
 
-function stopVideo() {
-  if (video.srcObject) {
-    video.srcObject.getTracks().forEach(t => t.stop());
-  }
-}
+// function stopVideo() {
+//   if (video.srcObject) {
+//     video.srcObject.getTracks().forEach(t => t.stop());
+//   }
+// }
 
-function toggleCameraFacingMode() {
-  frontFacing = !frontFacing;
-  stopVideo();
-  startVideo();
-}
+// function toggleCameraFacingMode() {
+//   frontFacing = !frontFacing;
+//   stopVideo();
+//   startVideo();
+// }
 
-startVideo();
+// startVideo();
 
-knn.load()
-.then(() => {
-  start();
-  //TeachableMachine.ready();
-});
+// knn.load()
+// .then(() => {
+//   start();
+//   //TeachableMachine.ready();
+// });
 
-function start() {
-  if (timer) {
-    stop();
-  }
-  video.play();
-  timer = requestAnimationFrame(animate);
-}
+// function start() {
+//   if (timer) {
+//     stop();
+//   }
+//   video.play();
+//   timer = requestAnimationFrame(animate);
+// }
 
-function stop() {
-  video.pause();
-  cancelAnimationFrame(timer);
-}
+// function stop() {
+//   video.pause();
+//   cancelAnimationFrame(timer);
+// }
 
-function animate() {
-  if(videoPlaying) {
-    const image = dl.image.resizeBilinear(dl.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
-    if(training != -1) {
-      knn.addImage(image, training);
-      //TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
-    }
-    const exampleCount = knn.getClassExampleCount();
-    if(Math.max(...exampleCount) > 0) {
-      knn.predictClass(image)
-      .then(res => {
-        for(let i = 0; i < NUM_CLASSES; i++) {
-          if(res.classIndex == i) {
-            topChoice = i;
-          }
-          if(exampleCount[i] > 0) {
-            confidences[i] = res.confidences[i];
-          }
-        }
-        //TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
-        //TeachableMachine.gotClassification(labels[topChoice]);
-      })
-      .then(() => image.dispose());
-    } else {
-      image.dispose();
-    }
-  }
-  timer = requestAnimationFrame(animate);
-}
+// function animate() {
+//   if(videoPlaying) {
+//     const image = dl.image.resizeBilinear(dl.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
+//     if(training != -1) {
+//       knn.addImage(image, training);
+//       //TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
+//     }
+//     const exampleCount = knn.getClassExampleCount();
+//     if(Math.max(...exampleCount) > 0) {
+//       knn.predictClass(image)
+//       .then(res => {
+//         for(let i = 0; i < NUM_CLASSES; i++) {
+//           if(res.classIndex == i) {
+//             topChoice = i;
+//           }
+//           if(exampleCount[i] > 0) {
+//             confidences[i] = res.confidences[i];
+//           }
+//         }
+//         //TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
+//         //TeachableMachine.gotClassification(labels[topChoice]);
+//       })
+//       .then(() => image.dispose());
+//     } else {
+//       image.dispose();
+//     }
+//   }
+//   timer = requestAnimationFrame(animate);
+// }
 
-function startTraining(label) {
-  var numClasses = Object.keys(labelToClass).length;
-  if (!labelToClass.hasOwnProperty(label)) {
-    if (numClasses == NUM_CLASSES) {
-      return;
-    }
-    labelToClass[label] = numClasses;
-    labels.push(label);
-  }
-  training = labelToClass[label];
-}
+// function startTraining(label) {
+//   var numClasses = Object.keys(labelToClass).length;
+//   if (!labelToClass.hasOwnProperty(label)) {
+//     if (numClasses == NUM_CLASSES) {
+//       return;
+//     }
+//     labelToClass[label] = numClasses;
+//     labels.push(label);
+//   }
+//   training = labelToClass[label];
+// }
 
-function stopTraining() {
-  training = -1;
-}
+// function stopTraining() {
+//   training = -1;
+// }
 
-function getSampleCount(label) {
-  if (!labelToClass.hasOwnProperty(label)) {
-    return -1;
-  }
-  var counts = knn.getClassExampleCount();
-  return counts[labelToClass[label]];
-}
+// function getSampleCount(label) {
+//   if (!labelToClass.hasOwnProperty(label)) {
+//     return -1;
+//   }
+//   var counts = knn.getClassExampleCount();
+//   return counts[labelToClass[label]];
+// }
 
-function getConfidence(label) {
-  if (!labelToClass.hasOwnProperty(label)) {
-    return -1;
-  }
-  return confidences[labelToClass[label]];
-}
+// function getConfidence(label) {
+//   if (!labelToClass.hasOwnProperty(label)) {
+//     return -1;
+//   }
+//   return confidences[labelToClass[label]];
+// }
 
-function getClassification() {
-  return labels[topChoice];
-}
+// function getClassification() {
+//   return labels[topChoice];
+// }
 
-function setInputWidth(width) {
-  video.width = width;
-  video.height = video.videoHeight * width / video.videoWidth;
-}
+// function setInputWidth(width) {
+//   video.width = width;
+//   video.height = video.videoHeight * width / video.videoWidth;
+// }
