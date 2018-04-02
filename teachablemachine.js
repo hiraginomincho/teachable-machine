@@ -8,10 +8,13 @@ const IMAGE_SIZE = 227;
 const TOPK = 10;
 
 // Initiate variables
-var infoTexts = [];
 var training = -1; // -1 when no class is being trained
 var videoPlaying = false;
 var timer;
+
+var confidences = {};
+
+var topChoice;
 
 // Initiate deeplearn.js math and knn classifier objects
 var knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK);
@@ -20,39 +23,20 @@ var knn = new knn_image_classifier.KNNImageClassifier(NUM_CLASSES, TOPK);
 var video = document.createElement('video');
 video.setAttribute('autoplay', '');
 video.setAttribute('playsinline', '');
+video.width = 500;
+video.style.display = 'block';
 
 // Add video element to DOM
 document.body.appendChild(video);
 
-// Create training buttons and info texts
-for(let i=0;i<NUM_CLASSES; i++){
-  const div = document.createElement('div');
-  document.body.appendChild(div);
-  div.style.marginBottom = '10px';
-
-  // Create training button
-  const button = document.createElement('button')
-  button.innerText = "Train "+i;
-  div.appendChild(button);
-
-  // Listen for mouse events when clicking the button
-  button.addEventListener('mousedown', () => training = i);
-  button.addEventListener('mouseup', () => training = -1);
-
-  // Create info text
-  const infoText = document.createElement('span')
-  infoText.innerText = " No examples added";
-  div.appendChild(infoText);
-  infoTexts.push(infoText);
-}
-
+video.addEventListener('loadedmetadata', function () {
+  video.height = this.videoHeight * video.width / this.videoWidth;
+}, false);
 
 // Setup webcam
 navigator.mediaDevices.getUserMedia({video: true, audio: false})
 .then((stream) => {
   video.srcObject = stream;
-  video.width = IMAGE_SIZE;
-  video.height = IMAGE_SIZE;
 
   video.addEventListener('playing', ()=> videoPlaying = true);
   video.addEventListener('paused', ()=> videoPlaying = false);
@@ -93,14 +77,12 @@ function animate(){
         for(let i=0;i<NUM_CLASSES; i++){
           // Make the predicted class bold
           if(res.classIndex == i){
-            infoTexts[i].style.fontWeight = 'bold';
-          } else {
-            infoTexts[i].style.fontWeight = 'normal';
+            topChoice = i;
           }
 
           // Update info text
           if(exampleCount[i] > 0){
-            infoTexts[i].innerText = ` ${exampleCount[i]} examples - ${res.confidences[i]*100}%`
+            confidences[i] = res.confidences[i];
           }
         }
       })
