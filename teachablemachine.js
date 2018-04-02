@@ -47,7 +47,9 @@ function startVideo() {
 startVideo();
 
 // Load knn model
-knn.load().then(() => start());
+knn.load().then(() => {
+  start();
+});
 
 function start(){
   if (timer) {
@@ -70,7 +72,7 @@ function animate(){
     // Train class if one of the buttons is held down
     if(training != -1){
       // Add current image to classifier
-      knn.addImage(image, training)
+      knn.addImage(image, training);
     }
 
     // If any examples have been added, run predict
@@ -89,9 +91,9 @@ function animate(){
         }
       })
       // Dispose image when done
-      .then(()=> image.dispose())
+      .then(()=> image.dispose());
     } else {
-      image.dispose()
+      image.dispose();
     }
   }
 }
