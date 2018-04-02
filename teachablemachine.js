@@ -300,7 +300,7 @@ function stop() {
 function animate() {
   if(videoPlaying) {
     //const image = tf.image.resizeBilinear(tf.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
-    const image = tf.fromPixels(video);
+    const image = tf.fromPixels(video).toFloat();
     if(training != -1) {
       knn.addImage(image, training);
       TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
