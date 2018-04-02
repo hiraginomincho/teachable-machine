@@ -57,7 +57,7 @@ function stop(){
 function animate(){
   if(videoPlaying){
     // Get image data from video element
-    const image = dl.fromPixels(video);
+    const image = dl.image.resizeBilinear(dl.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
 
     // Train class if one of the buttons is held down
     if(training != -1){
