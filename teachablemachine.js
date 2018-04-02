@@ -8,7 +8,6 @@ const IMAGE_SIZE = 227;
 const TOPK = 10;
 
 // Initiate variables
-var infoTexts = [];
 var training = -1; // -1 when no class is being trained
 var videoPlaying = false;
 var timer;
@@ -24,28 +23,9 @@ video.setAttribute('playsinline', '');
 // Add video element to DOM
 document.body.appendChild(video);
 
-// Create training buttons and info texts
-for(let i=0;i<NUM_CLASSES; i++){
-  const div = document.createElement('div');
-  document.body.appendChild(div);
-  div.style.marginBottom = '10px';
+var confidences = {};
 
-  // Create training button
-  const button = document.createElement('button')
-  button.innerText = "Train "+i;
-  div.appendChild(button);
-
-  // Listen for mouse events when clicking the button
-  button.addEventListener('mousedown', () => training = i);
-  button.addEventListener('mouseup', () => training = -1);
-
-  // Create info text
-  const infoText = document.createElement('span')
-  infoText.innerText = " No examples added";
-  div.appendChild(infoText);
-  infoTexts.push(infoText);
-}
-
+var topChoice;
 
 // Setup webcam
 navigator.mediaDevices.getUserMedia({video: true, audio: false})
@@ -93,14 +73,12 @@ function animate(){
         for(let i=0;i<NUM_CLASSES; i++){
           // Make the predicted class bold
           if(res.classIndex == i){
-            infoTexts[i].style.fontWeight = 'bold';
-          } else {
-            infoTexts[i].style.fontWeight = 'normal';
+            topChoice = i;
           }
 
           // Update info text
           if(exampleCount[i] > 0){
-            infoTexts[i].innerText = ` ${exampleCount[i]} examples - ${res.confidences[i]*100}%`
+            confidences[i] = res.confidences[i];
           }
         }
       })
