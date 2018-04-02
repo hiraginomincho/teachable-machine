@@ -28,9 +28,6 @@ document.body.appendChild(video);
 
 var timer;
 
-var labelToClass = {};
-var labels = [];
-
 var confidences = {};
 
 var topChoice;
@@ -49,18 +46,6 @@ function startVideo() {
 }
 
 startVideo();
-
-function stopVideo() {
-  if (video.srcObject) {
-    video.srcObject.getTracks().forEach(t => t.stop());
-  }
-}
-
-function toggleCameraFacingMode() {
-  frontFacing = !frontFacing;
-  stopVideo();
-  startVideo();
-}
 
 // Load knn model
 knn.load().then(() => {
