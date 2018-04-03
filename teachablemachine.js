@@ -248,17 +248,15 @@ var labels = [];
 var confidences = {};
 
 var topChoice;
-/*
+
 video.addEventListener('loadedmetadata', function () {
   video.height = this.videoHeight * video.width / this.videoWidth;
 }, false);
-*/
+
 function startVideo() {
   navigator.mediaDevices.getUserMedia({video: {facingMode: frontFacing ? 'user' : 'environment'}, audio: false})
   .then(stream => {
     video.srcObject = stream;
-    video.width = IMAGE_SIZE;
-    video.height = IMAGE_SIZE;
     video.addEventListener('playing', () => videoPlaying = true);
     video.addEventListener('paused', () => videoPlaying = false);
   }).catch(e => log(e));
@@ -281,7 +279,7 @@ startVideo();
 knn.load()
 .then(() => {
   start();
-  TeachableMachine.ready();
+  //TeachableMachine.ready();
 });
 
 function start() {
@@ -299,11 +297,12 @@ function stop() {
 
 function animate() {
   if(videoPlaying) {
-    //const image = tf.image.resizeBilinear(tf.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
-    const image = tf.fromPixels(video).toFloat();
+    const image = tf.tidy(() => {
+      return tf.image.resizeBilinear(tf.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
+    });
     if(training != -1) {
       knn.addImage(image, training);
-      TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
+      //TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
     }
     const exampleCount = knn.getClassExampleCount();
     if(Math.max(...exampleCount) > 0) {
@@ -317,8 +316,8 @@ function animate() {
             confidences[i] = res.confidences[i];
           }
         }
-        TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
-        TeachableMachine.gotClassification(labels[topChoice]);
+        //TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
+        //TeachableMachine.gotClassification(labels[topChoice]);
       })
       .then(() => image.dispose());
     } else {
@@ -362,9 +361,8 @@ function getConfidence(label) {
 function getClassification() {
   return labels[topChoice];
 }
-/*
+
 function setInputWidth(width) {
   video.width = width;
   video.height = video.videoHeight * width / video.videoWidth;
 }
-*/
