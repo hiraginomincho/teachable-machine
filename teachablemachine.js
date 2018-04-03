@@ -301,6 +301,18 @@ function stop() {
   cancelAnimationFrame(timer);
 }
 
+function listConfidences() {
+  var cList = [];
+  for (let i = 0; i < NUM_CLASSES; i++) {
+    if (confidences.hasOwnProperty(i)) {
+      cList.push(confidences[i]);
+    } else {
+      cList.push(0);
+    }
+  }
+  return cList;
+}
+
 function animate() {
   if(videoPlaying) {
     const image = tf.tidy(() => {
@@ -322,7 +334,7 @@ function animate() {
             confidences[i] = res.confidences[i];
           }
         }
-        TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
+        TeachableMachine.gotConfidences(JSON.stringify(listConfidences()));
         TeachableMachine.gotClassification(labels[topChoice]);
       })
       .then(() => image.dispose());
