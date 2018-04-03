@@ -243,11 +243,17 @@ document.body.appendChild(video);
 var timer;
 
 var labelToClass = {};
-var labels = [];
+var classToLabel = {};
 
 var confidences = {};
 
 var topChoice;
+
+var availableClasses = [];
+
+for (let i = 0; i < NUM_CLASSES; i++) {
+  availableClasses.push(i);
+}
 
 video.addEventListener('loadedmetadata', function () {
   video.height = this.videoHeight * video.width / this.videoWidth;
@@ -279,7 +285,7 @@ startVideo();
 knn.load()
 .then(() => {
   start();
-  //TeachableMachine.ready();
+  TeachableMachine.ready();
 });
 
 function start() {
@@ -302,7 +308,7 @@ function animate() {
     });
     if(training != -1) {
       knn.addImage(image, training);
-      //TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
+      TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
     }
     const exampleCount = knn.getClassExampleCount();
     if(Math.max(...exampleCount) > 0) {
@@ -316,8 +322,8 @@ function animate() {
             confidences[i] = res.confidences[i];
           }
         }
-        //TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
-        //TeachableMachine.gotClassification(labels[topChoice]);
+        TeachableMachine.gotConfidences(JSON.stringify(Object.values(confidences)));
+        TeachableMachine.gotClassification(labels[topChoice]);
       })
       .then(() => image.dispose());
     } else {
@@ -328,13 +334,13 @@ function animate() {
 }
 
 function startTraining(label) {
-  var numClasses = Object.keys(labelToClass).length;
   if (!labelToClass.hasOwnProperty(label)) {
-    if (numClasses == NUM_CLASSES) {
+    if (availableClasses.length == 0) {
       return;
     }
-    labelToClass[label] = numClasses;
-    labels.push(label);
+    var c = availableClasses.shift();
+    labelToClass[label] = c;
+    classToLabel[c] = label;
   }
   training = labelToClass[label];
 }
@@ -359,7 +365,18 @@ function getConfidence(label) {
 }
 
 function getClassification() {
-  return labels[topChoice];
+  return classToLabel[topChoice];
+}
+
+function clear(label) {
+  if (labelToClass.hasOwnProperty(label)) {
+    knn.clearClass(labelToClass[label]);
+    availableClasses.push(labelToClass[label]);
+    availableClasses.sort();
+    delete classToLabel[labelToClass[label]];
+    delete confidences[labelToClass[label]];
+    delete labelToClass[label];
+  }
 }
 
 function setInputWidth(width) {
