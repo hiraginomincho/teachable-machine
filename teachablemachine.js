@@ -301,13 +301,24 @@ function stop() {
   cancelAnimationFrame(timer);
 }
 
-function listConfidences() {
-  var cList = [];
+function listSampleCounts() {
+  var sampleCounts = knn.getClassExampleCount();
+  var sList = [[], []];
   for (let i = 0; i < NUM_CLASSES; i++) {
-    if (confidences.hasOwnProperty(i)) {
-      cList.push(confidences[i]);
-    } else {
-      cList.push(0);
+    if (classToLabel.hasOwnProperty(i)) {
+      sList[0].push(classToLabel[i]);
+      sList[1].push(sampleCounts[i]);
+    }
+  }
+  return sList;
+}
+
+function listConfidences() {
+  var cList = [[], []];
+  for (let i = 0; i < NUM_CLASSES; i++) {
+    if (classToLabel.hasOwnProperty(i)) {
+      cList[0].push(classToLabel[i]);
+      cList[1].push(confidences[i]);
     }
   }
   return cList;
@@ -320,7 +331,8 @@ function animate() {
     });
     if(training != -1) {
       knn.addImage(image, training);
-      TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
+      var sList = listSampleCounts();
+      TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
     }
     const exampleCount = knn.getClassExampleCount();
     if(Math.max(...exampleCount) > 0) {
@@ -334,7 +346,8 @@ function animate() {
             confidences[i] = res.confidences[i];
           }
         }
-        TeachableMachine.gotConfidences(JSON.stringify(listConfidences()));
+        var cList = listConfidences();
+        TeachableMachine.gotConfidences(JSON.stringify(cList[0]), JSON.stringify(cList[1]));
         TeachableMachine.gotClassification(classToLabel[topChoice]);
       })
       .then(() => image.dispose());
