@@ -403,6 +403,9 @@ function clear(label) {
     delete labelToClass[label];
     var sList = listSampleCounts();
     TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
+    var cList = listConfidences();
+    TeachableMachine.gotConfidences(JSON.stringify(cList[0]), JSON.stringify(cList[1]));
+    TeachableMachine.gotClassification(classToLabel[topChoice]);
   }
 }
 
