@@ -395,6 +395,9 @@ function getClassification() {
 
 function clear(label) {
   if (labelToClass.hasOwnProperty(label)) {
+    if (training === labelToClass[label]) {
+      stopTraining();
+    }
     knn.clearClass(labelToClass[label]);
     availableClasses.push(labelToClass[label]);
     availableClasses.sort();
