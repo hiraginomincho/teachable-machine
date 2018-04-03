@@ -335,7 +335,7 @@ function animate() {
           }
         }
         TeachableMachine.gotConfidences(JSON.stringify(listConfidences()));
-        TeachableMachine.gotClassification(labels[topChoice]);
+        TeachableMachine.gotClassification(classToLabel[topChoice]);
       })
       .then(() => image.dispose());
     } else {
@@ -388,6 +388,7 @@ function clear(label) {
     delete classToLabel[labelToClass[label]];
     delete confidences[labelToClass[label]];
     delete labelToClass[label];
+    TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
   }
 }
 
