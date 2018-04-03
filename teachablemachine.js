@@ -401,7 +401,8 @@ function clear(label) {
     delete classToLabel[labelToClass[label]];
     delete confidences[labelToClass[label]];
     delete labelToClass[label];
-    TeachableMachine.gotSampleCounts(JSON.stringify(knn.getClassExampleCount()));
+    var sList = listSampleCounts();
+    TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
   }
 }
 
