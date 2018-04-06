@@ -7,6 +7,7 @@ const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mo
 var NUM_CLASSES = 3;
 const IMAGE_SIZE = 224;
 const TOPK = 10;
+const MAX_EXAMPLES = 50;
 
 var url = window.location.href;
 var index = url.indexOf("=");
@@ -340,7 +341,7 @@ function animate() {
     const image = tf.tidy(() => {
       return tf.image.resizeBilinear(tf.fromPixels(video).toFloat(), [IMAGE_SIZE, IMAGE_SIZE]);
     });
-    if(training != -1) {
+    if(training != -1 && knn.getClassExampleCount()[training] < MAX_EXAMPLES) {
       knn.addImage(image, training);
       var sList = listSampleCounts();
       TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
