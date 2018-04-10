@@ -4,20 +4,15 @@ console.log('TeachableMachine: Using Tensorflow.js version ' + tf.version.tfjs);
 
 const MOBILENET_MODEL_PATH = 'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json';
 
-var NUM_CLASSES = 3;
+var url = window.location.href;
+var index = url.indexOf('=');
+const NUM_CLASSES = (index >= 0) ? parseInt(url.substring(index + 1), 10) : 3;
 const IMAGE_SIZE = 224;
 const TOPK = 10;
-const MAX_EXAMPLES = 1;
+const MAX_EXAMPLES = 50;
 
-// ERRORS
 const ERROR_LABEL_DOES_NOT_EXIST = -1;
 const ERROR_NO_MORE_AVAILABLE_CLASSES = -2;
-
-var url = window.location.href;
-var index = url.indexOf("=");
-if (index >= 0) {
-  NUM_CLASSES = parseInt(url.substring(index+1), 10);
-}
 
 class KNNImageClassifier {
   constructor(numClasses, k) {
@@ -256,7 +251,7 @@ class KNNImageClassifier {
     }
     this.classLogitsMatrices[classIndex] = logits;
     this.classExampleCount[classIndex] = logits.shape[0];
-  } 
+  }
 }
 
 var training = -1;
@@ -319,7 +314,7 @@ startVideo();
 knn.load()
 .then(() => {
   start();
-  // TeachableMachine.ready();
+  TeachableMachine.ready();
 });
 
 function start() {
@@ -366,7 +361,7 @@ function animate() {
     if(training != -1 && knn.getClassExampleCount()[training] < MAX_EXAMPLES) {
       knn.addImage(image, training);
       var sList = listSampleCounts();
-      // TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
+      TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
     }
     const exampleCount = knn.getClassExampleCount();
     if(Math.max(...exampleCount) > 0) {
@@ -381,8 +376,8 @@ function animate() {
           }
         }
         var cList = listConfidences();
-        // TeachableMachine.gotConfidences(JSON.stringify(cList[0]), JSON.stringify(cList[1]));
-        // TeachableMachine.gotClassification(classToLabel[topChoice]);
+        TeachableMachine.gotConfidences(JSON.stringify(cList[0]), JSON.stringify(cList[1]));
+        TeachableMachine.gotClassification(classToLabel[topChoice]);
       })
       .then(() => image.dispose());
     } else {
@@ -395,6 +390,7 @@ function animate() {
 function startTraining(label) {
   if (!labelToClass.hasOwnProperty(label)) {
     if (availableClasses.length == 0) {
+      TeachableMachine.error(ERROR_NO_MORE_AVAILABLE_CLASSES, label);
       return;
     }
     var c = availableClasses.shift();
@@ -428,25 +424,27 @@ function getClassification() {
 }
 
 function clear(label) {
-  if (labelToClass.hasOwnProperty(label)) {
-    if (training === labelToClass[label]) {
-      stopTraining();
-    }
-    knn.clearClass(labelToClass[label]);
-    availableClasses.push(labelToClass[label]);
-    availableClasses.sort();
-    delete classToLabel[labelToClass[label]];
-    delete confidences[labelToClass[label]];
-    delete labelToClass[label];
-    // var sList = listSampleCounts();
-    // TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
-    // var cList = listConfidences();
-    // TeachableMachine.gotConfidences(JSON.stringify(cList[0]), JSON.stringify(cList[1]));
-    // if (classToLabel.hasOwnProperty(topChoice)) {
-    //   TeachableMachine.gotClassification(classToLabel[topChoice]);
-    // } else {
-    //   TeachableMachine.gotClassification('');
-    // }
+  if (!labelToClass.hasOwnProperty(label)) {
+    TeachableMachine.error(ERROR_LABEL_DOES_NOT_EXIST, label);
+    return;
+  }
+  if (training === labelToClass[label]) {
+    stopTraining();
+  }
+  knn.clearClass(labelToClass[label]);
+  availableClasses.push(labelToClass[label]);
+  availableClasses.sort();
+  delete classToLabel[labelToClass[label]];
+  delete confidences[labelToClass[label]];
+  delete labelToClass[label];
+  var sList = listSampleCounts();
+  TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
+  var cList = listConfidences();
+  TeachableMachine.gotConfidences(JSON.stringify(cList[0]), JSON.stringify(cList[1]));
+  if (classToLabel.hasOwnProperty(topChoice)) {
+    TeachableMachine.gotClassification(classToLabel[topChoice]);
+  } else {
+    TeachableMachine.gotClassification('');
   }
 }
 
@@ -455,30 +453,29 @@ function setInputWidth(width) {
   video.height = video.videoHeight * width / video.videoWidth;
 }
 
-var modelAsString;
 async function saveModel(label) {
-  if (labelToClass.hasOwnProperty(label)) {
-    var output = await knn.classLogitsMatrices[labelToClass[label]].data();
-    console.log("TeachableMachine: " + JSON.stringify(Array.from(output)));
-    // TeachableMachine.gotSavedModel(JSON.stringify(Array.from(output)));
-    modelAsString = JSON.stringify(Array.from(output));
+  if (!labelToClass.hasOwnProperty(label)) {
+    TeachableMachine.error(ERROR_LABEL_DOES_NOT_EXIST, label);
+    return;
   }
-  // TeachableMachine.error(ERROR_LABEL_DOES_NOT_EXIST, label);
+  var output = await knn.classLogitsMatrices[labelToClass[label]].data();
+  TeachableMachine.gotSavedModel(label, JSON.stringify(Array.from(output)));
 }
 
-function loadModel(model, label) {
+function loadModel(label, model) {
   if (!labelToClass.hasOwnProperty(label)) {
     if (availableClasses.length == 0) {
-      // TeachableMachine.error(ERROR_NO_MORE_AVAILABLE_CLASSES, label);
+      TeachableMachine.error(ERROR_NO_MORE_AVAILABLE_CLASSES, label);
       return;
     }
     var c = availableClasses.shift();
     labelToClass[label] = c;
     classToLabel[c] = label;
   }
-
   var array = JSON.parse(model);
-  var tensor = tf.tensor2d(array, [array.length/1000, 1000]);
+  var tensor = tf.tensor2d(array, [array.length / 1000, 1000]);
   knn.loadLogits(tensor, labelToClass[label]);
-  // TeachableMachine.doneLoadingModel(label);
+  var sList = listSampleCounts();
+  TeachableMachine.gotSampleCounts(JSON.stringify(sList[0]), JSON.stringify(sList[1]));
+  TeachableMachine.doneLoadingModel(label);
 }
