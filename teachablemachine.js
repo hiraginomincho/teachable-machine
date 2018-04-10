@@ -453,13 +453,17 @@ function setInputWidth(width) {
   video.height = video.videoHeight * width / video.videoWidth;
 }
 
-async function saveModel(label) {
-  if (!labelToClass.hasOwnProperty(label)) {
-    TeachableMachine.error(ERROR_LABEL_DOES_NOT_EXIST, label);
-    return;
+async function saveModel(filename) {
+  // loop through all classes
+  var classes = [];
+  for (var i = 0; i < NUM_CLASSES; i++) {
+    if (classToLabel.hasOwnProperty(i)) {
+      classes.push(classToLabel[i]);
+      classes.push(Array.from(await knn.classLogitsMatrices[i].data()));
+    }
   }
-  var output = await knn.classLogitsMatrices[labelToClass[label]].data();
-  TeachableMachine.gotSavedModel(label, JSON.stringify(Array.from(output)));
+  console.log(JSON.stringify(classes));
+  TeachableMachine.gotSavedModel(filename, JSON.stringify(classes));
 }
 
 function loadModel(label, model) {
