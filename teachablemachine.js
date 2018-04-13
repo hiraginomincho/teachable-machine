@@ -4,7 +4,13 @@ console.log("TeachableMachine: Using Tensorflow.js version " + tf.version.tfjs);
 
 const MOBILENET_MODEL_PATH = "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json";
 
+<<<<<<< HEAD
 const NUM_CLASSES = 50;
+=======
+var url = window.location.href;
+var index = url.indexOf("=");
+const NUM_CLASSES = (index >= 0) ? parseInt(url.substring(index + 1), 10) : 3;
+>>>>>>> 300e6e0c2b72a9d5905e3e02eacd393a15d3683d
 const IMAGE_SIZE = 224;
 const TOPK = 10;
 const MAX_EXAMPLES = 50;
