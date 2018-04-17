@@ -359,8 +359,7 @@ function animate() {
     });
     if(training != -1 && knn.getClassExampleCount()[training] < MAX_EXAMPLES) {
       knn.addImage(image, training);
-      var sList = listSampleCounts();
-      TeachableMachine.gotSampleCounts(JSON.stringify(sList));
+      TeachableMachine.gotSampleCounts(JSON.stringify(listSampleCounts()));
     }
     const exampleCount = knn.getClassExampleCount();
     if(Math.max(...exampleCount) > 0) {
@@ -374,8 +373,7 @@ function animate() {
             confidences[i] = res.confidences[i];
           }
         }
-        var cList = listConfidences();
-        TeachableMachine.gotConfidences(JSON.stringify(cList));
+        TeachableMachine.gotConfidences(JSON.stringify(listConfidences()));
         TeachableMachine.gotClassification(classToLabel[topChoice]);
       })
       .then(() => image.dispose());
@@ -419,10 +417,8 @@ function clear(encodedLabel) {
   delete classToLabel[labelToClass[label]];
   delete confidences[labelToClass[label]];
   delete labelToClass[label];
-  var sList = listSampleCounts();
-  TeachableMachine.gotSampleCounts(JSON.stringify(sList));
-  var cList = listConfidences();
-  TeachableMachine.gotConfidences(JSON.stringify(cList));
+  TeachableMachine.gotSampleCounts(JSON.stringify(listSampleCounts()));
+  TeachableMachine.gotConfidences(JSON.stringify(listConfidences()));
   if (classToLabel.hasOwnProperty(topChoice)) {
     TeachableMachine.gotClassification(classToLabel[topChoice]);
   } else {
@@ -467,7 +463,6 @@ function loadModel(encodedName, model) {
     labelToClass[label] = c;
     classToLabel[c] = label;
   }
-  var sList = listSampleCounts();
-  TeachableMachine.gotSampleCounts(JSON.stringify(sList));
+  TeachableMachine.gotSampleCounts(JSON.stringify(listSampleCounts()));
   TeachableMachine.doneLoadingModel(name);
 }
