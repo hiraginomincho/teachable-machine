@@ -415,7 +415,7 @@ function clear(encodedLabel) {
   }
   knn.clearClass(labelToClass[label]);
   availableClasses.push(labelToClass[label]);
-  availableClasses.sort();
+  availableClasses.sort((a, b) => a - b);
   delete classToLabel[labelToClass[label]];
   delete confidences[labelToClass[label]];
   delete labelToClass[label];
