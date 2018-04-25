@@ -260,7 +260,7 @@ video.setAttribute("playsinline", "");
 video.width = 500;
 video.style.display = "block";
 
-var frontFacing = true;
+var frontFacing = false;
 
 document.body.appendChild(video);
 
