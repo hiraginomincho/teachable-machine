@@ -257,7 +257,7 @@ var knn = new KNNImageClassifier(NUM_CLASSES, TOPK);
 var video = document.createElement("video");
 video.setAttribute("autoplay", "");
 video.setAttribute("playsinline", "");
-video.width = 500;
+video.width = window.innerWidth;
 video.style.display = "block";
 
 var frontFacing = false;
@@ -426,10 +426,10 @@ function clear(encodedLabel) {
   }
 }
 
-function setInputWidth(width) {
-  video.width = width;
-  video.height = video.videoHeight * width / video.videoWidth;
-}
+window.addEventListener("resize", function() {
+  video.width = window.innerWidth;
+  video.height = video.videoHeight * window.innerWidth / video.videoWidth;
+});
 
 async function saveModel(encodedName) {
   var classes = [];
