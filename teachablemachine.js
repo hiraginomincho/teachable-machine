@@ -1,6 +1,6 @@
 "use strict";
 
-console.log("TeachableMachine: Using Tensorflow.js version " + tf.version.tfjs);
+console.log("TeachableMachine: Using TensorFlow.js version " + tf.version.tfjs);
 
 const MOBILENET_MODEL_PATH = "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json";
 
@@ -8,6 +8,14 @@ const NUM_CLASSES = 50;
 const IMAGE_SIZE = 224;
 const TOPK = 10;
 const MAX_EXAMPLES = 50;
+
+const ERROR_CLASSIFICATION_NOT_SUPPORTED = -1;
+const ERROR_CLASSIFICATION_FAILED = -2;
+const ERROR_LOAD_MODEL_FAILED_BAD_FILE_FORMAT = -3;
+const ERROR_LOAD_MODEL_FAILED_TOO_MANY_CLASSES = -4;
+const ERROR_SAVE_MODEL_FAILED = -5;
+const ERROR_NO_MORE_CLASSES_AVAILABLE = -6;
+const ERROR_LABEL_DOES_NOT_EXIST = -7;
 
 class KNNImageClassifier {
   constructor(numClasses, k) {
@@ -388,7 +396,7 @@ function startTraining(encodedLabel) {
   var label = decodeURIComponent(encodedLabel);
   if (!labelToClass.hasOwnProperty(label)) {
     if (availableClasses.length == 0) {
-      TeachableMachine.error("StartTraining: no more classes available to train label " + label);
+      TeachableMachine.error(ERROR_NO_MORE_CLASSES_AVAILABLE, label);
       return;
     }
     var c = availableClasses.shift();
@@ -405,7 +413,7 @@ function stopTraining() {
 function clear(encodedLabel) {
   var label = decodeURIComponent(encodedLabel);
   if (!labelToClass.hasOwnProperty(label)) {
-    TeachableMachine.error("Clear: Label " + label + " does not exist");
+    TeachableMachine.error(ERROR_LABEL_DOES_NOT_EXIST, label);
     return;
   }
   if (training === labelToClass[label]) {
@@ -446,7 +454,7 @@ function loadModel(encodedName, model) {
   var name = decodeURIComponent(encodedName);
   var array = JSON.parse(decodeURIComponent(model));
   if (array.length > 2 * NUM_CLASSES) {
-    TeachableMachine.error("LoadModel: not enough classes available to load model with name " + name);
+    TeachableMachine.error(ERROR_LOAD_MODEL_FAILED_TOO_MANY_CLASSES, name);
     return;
   }
   for (var i = 0; i < NUM_CLASSES; i++) {
